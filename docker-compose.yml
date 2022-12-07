@@ -1,0 +1,45 @@
+version: "2"
+services:
+  expense-app-gateway:
+    container_name: expense-app-gateway
+    build: ./expense-app-gateway
+    volumes:
+      - './expense-app-gateway/server:/app'
+    restart: always
+    ports:
+      - "9890:80"  
+  
+  expense-app-db:
+    container_name: expense-app-db
+    image: postgres:12.2
+    restart: always
+    environment:
+      POSTGRES_DB: expense-app-db
+      POSTGRES_USER: expenseDBDev
+      POSTGRES_PASSWORD: expesnePw0706
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - ./db/01-init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5555"
+  
+  expense-app-pgadmin:
+    container_name: expense-app-pgadmin
+    image: dpage/pgadmin4:6.8
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-dev@dev.co.th}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-expesnePw0706}
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8891:80"
+    volumes:
+      - expense-app-pgadmin:/var/lib/pgadmin
+    links:
+      - "expense-app-db:pgsql-server"
+      
+volumes:
+  expense-app-pgadmin:
+networks:
+  postgres:
+    driver: bridge
